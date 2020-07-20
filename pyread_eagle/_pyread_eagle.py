@@ -324,6 +324,36 @@ class EagleSnapshot(object):
                 np.concatenate(file_offsets)
 
     @check_open
+    def read_dataset_units(self, itype, name):
+        """Read the numerical conversion factor which transforms a dataset from code to CGS units"""
+        return self.read_extra_dataset_units(itype, name, None)
+
+    @check_open
+    def read_extra_dataset_units(self, itype, name, basename):
+        if (itype < 0) or (itype > 5):
+            raise ValueError('Particle type itype is outside range 0-5!')
+        if self.verbose:
+            print('read_dataset_units() called')
+        name = "PartType{:d}/{:s}".format(itype, name)
+
+        fname = '{:s}.0.hdf5'.format(basename if basename 
+                                     else self.basename)
+        with h5py.File(fname, 'r') as f:
+            try:
+                d = f[name]
+                head = f['Header']
+            except KeyError:
+                raise KeyError('Unable to open dataset: {:s}'.format(name))
+            little_h = head.attrs['HubbleParam']
+            a = head.attrs['ExpansionFactor']
+
+            cgs_factor = d.attrs['CGSConversionFactor']
+            a_exponent = d.attrs['aexp-scale-exponent']
+            h_exponent = d.attrs['h-scale-exponent']
+
+        return little_h**h_exponent * a**a_exponent * cgs_factor
+
+    @check_open
     def read_dataset(self, itype, name):
         """Read a dataset and return it as a Numpy array"""
         return self.read_extra_dataset(itype, name, None)
