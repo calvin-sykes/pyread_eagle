@@ -347,6 +347,8 @@ class EagleSnapshot(object):
             little_h = head.attrs['HubbleParam']
             a = head.attrs['ExpansionFactor']
 
+            if any(factor not in d.attrs for factor in ['CGSConversionFactor', 'aexp-scale-exponent', 'h-scale-exponent']):
+                raise ValueError('Dataset {:s} does not have EAGLE-style units recorded')
             cgs_factor = d.attrs['CGSConversionFactor']
             a_exponent = d.attrs['aexp-scale-exponent']
             h_exponent = d.attrs['h-scale-exponent']
